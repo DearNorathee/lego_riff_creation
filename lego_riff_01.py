@@ -14,41 +14,8 @@ import inspect_py as inp
 # scales._Scale
 # based on migus 0.6.1
 
-ScaleType = Union[str, scales._Scale]
-
-# def create_midi(out_filename:Union[Path,str], note_names:List[str], note_lengths:Union[None,List[float]]) -> None:
-#     from music21 import stream,note,midi
-#     """
-#     Create a MIDI file with the specified note names and save it to the given filename.
-    
-#     Parameters:
-#     filename (str): The name of the MIDI file to be created.
-#     note_names (list): List of strings representing the names of the notes to be added to the MIDI file.
-    
-#     note_lengths: 1 represent quater note
-
-#     Returns:
-#     None
-#     """
-#     # Create a stream
-#     s = stream.Stream()
-
-#     # Add notes to the stream
-#     for i, note_name in enumerate(note_names):
-#         n = note.Note(note_name)
-#         if note_lengths is None:
-#             n.quarterLength = 1  # Each note lasts for one quarter note
-#         else:
-#             n.quarterLength = note_lengths[i]
-#         s.append(n)
-
-#     # Create a MIDI file
-#     mf = midi.translate.streamToMidiFile(s)
-    
-#     # Write the MIDI file
-#     mf.open(out_filename, 'wb')
-#     mf.write()
-#     mf.close()
+ScaleType = Union[scales._Scale,Literal["Major","Minor","Natural minor","Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian","Harmonic minor","Melodic minor","Whole tone","Chromatic"]]
+OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output")
 
 def create_midi(out_filename: Union[Path, str], 
                 note_names: List[str], 
@@ -228,16 +195,36 @@ def convert_scale_degrees(
     return transposed_notes_str
 
 def _get_scale(key: str, scale_type: ScaleType) -> scales._Scale:
+        # Helper function to get the appropriate scale object
+        scale_dict = {
+            "major": scales.Major,
+            "minor": scales.NaturalMinor,
+            "natural minor": scales.NaturalMinor,
+            "ionian": scales.Ionian,
+            "dorian": scales.Dorian,
+            "phrygian": scales.Phrygian,
+            "lydian": scales.Lydian,
+            "mixolydian": scales.Mixolydian,
+            "aeolian": scales.Aeolian,
+            "locrian": scales.Locrian,
+            # Add more scales as needed
+            "harmonic minor": scales.HarmonicMinor,
+            "melodic minor": scales.MelodicMinor,
+            "whole tone": scales.WholeTone,
+            "chromatic": scales.Chromatic,
+            # "major pentatonic": scales.,
+
+        }
+        # no pentatonic scale in based on migus 0.6.1
+        
         if isinstance(scale_type, scales._Scale):
             return scale_type
         elif isinstance(scale_type, type) and issubclass(scale_type, scales._Scale):
             return scale_type(key)
         elif isinstance(scale_type, str):
             scale_type = scale_type.lower()
-            if scale_type == "major":
-                return scales.Major(key)
-            elif scale_type in ["minor", "natural minor"]:
-                return scales.NaturalMinor(key)
+            if scale_type in scale_dict.keys():
+                return scale_dict[scale_type](key)
             else:
                 raise ValueError(f"Unsupported scale type string: {scale_type}")
         else:
@@ -393,27 +380,38 @@ def test_make_num_degree_down():
     block01 = [3,2,1]
     actual01 = make_num_degree_down(block01,6,as_np=False)
     actual02 = make_num_degree_down(block01,6,as_np=True)
-    actual02 = make_num_degree_down(block01,6,as_np=False,as_positive=False)
-    actual02 = make_num_degree_down(block01,6,as_np=True,as_positive=False)
+    actual03 = make_num_degree_down(block01,6,as_np=False,as_positive=False)
+    actual04 = make_num_degree_down(block01,6,as_np=True,as_positive=False)
 
 
     expect01 = [8, 7, 6, 7, 6, 5, 6, 5, 4, 5, 4, 3, 4, 3, 2, 3, 2, 1, 2, 1, 0]
     expect02 = np.array(expect01)
+    expect03 = [0, -1, -2, -1, -2, -3, -2, -3, -4, -3, -4, -5, -4, -5, -6, -5, -6, -7, -6, -7, -8]
+    expect04 = np.array(expect03)
 
-    print(actual01)
-    print(actual02)
+    print(actual03)
+    print(actual04)
 
     assert actual01 == expect01, inp.assert_message(actual01,expect01)
     assert np.array_equal(actual02 ,expect02), inp.assert_message(actual02, expect02)
+
+    assert actual03 == expect03, inp.assert_message(actual03,expect03)
+    assert np.array_equal(actual04 ,expect04), inp.assert_message(actual04, expect04)
     
 
 ####################################
 
-def create_first_block():
+def create_block01():
     note_lengths01 = [1,0.5,0.5,1,2]
     note_names01 = ["D4", " E4", " D4", " C4", " D4"]
     OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output")
     OUTPUT_PATH01 = OUTPUT_FOLDER/ 'test01.mid'
+    create_midi(OUTPUT_PATH01,note_names01,note_lengths01)
+
+def create_block02():
+    note_lengths01 = [0.5,0.5,1]
+    note_names01 = ["C5","Bb4","Ab4"]
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'riff_02_block.mid'
     create_midi(OUTPUT_PATH01,note_names01,note_lengths01)
 
 def create_riff01():
@@ -429,11 +427,24 @@ def create_riff01():
     create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01)
     create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
 
+def create_riff02():
+    block01 = [3,2,1]
+    note_lengths01 = [0.75,0.25,1]
+    scale_degrees01 = make_num_degree_down(block01,5)
+    riff_notes01 = convert_num_to_scale(scale_degrees01,scale_type="Minor")
 
-def main():
-    main_test()
-    create_riff01()
-    create_first_block()
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'riff_02_120bpm.mid'
+    OUTPUT_PATH02 = OUTPUT_FOLDER/ 'riff_02_240bpm.mid'
+
+    create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01)
+    create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
+
+
+def main_real_test():
+    create_riff02()
+    create_block02()
+    # create_riff01()
+    # create_block01()
 
 def main_test():
     test_make_num_degree_down()
@@ -441,5 +452,9 @@ def main_test():
     # test_make_num_seq()
     # test_midi_to_audio()
 
+def main():
+    main_real_test()
+    main_test()
+    
 if __name__ == '__main__':
     main()
