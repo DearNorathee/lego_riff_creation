@@ -1,4 +1,13 @@
 # use env => latest pandas
+
+# took me about 2 days to produce the first 2 riffs(with the same key)
+
+
+# NEXT:
+# create_midi_lego_riff_1file -> package the functions that I have with 3 inputs noteblock,note_lengh,n_repeat, bpm
+# create_midi_lego_riff_combi -> build on top of create_midi_lego_riff_1file that will create midi files with different scales, keys, bpm in a loop with ost
+
+
 from music21 import stream
 import pandas as pd
 from midi2audio import FluidSynth
