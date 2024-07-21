@@ -8,7 +8,7 @@ from pathlib import Path
 from mingus.core import scales, notes, intervals
 from functools import partial
 from mingus.containers import Note
-
+import numpy as np
 import inspect_py as inp
 # notes.int_to_note()
 # scales._Scale
@@ -277,7 +277,9 @@ def convert_num_to_scale(scale_degrees:List[int],
         return scales_notes
     
 
-def make_num_seq(num_block:List[int],n:int = 7, increment:int = 1,as_np:bool=False) -> List[int]:
+def make_num_seq(num_block:List[int],n:int = 7, increment:int = 1,as_np:bool=False) -> Union[List[int], np.ndarray[np.int_]]:
+
+
     """
     Generates a sequence of numbers by repeating the given `num_block` list `n` times and incrementing each element by `increment`.
     
@@ -303,6 +305,45 @@ def make_num_seq(num_block:List[int],n:int = 7, increment:int = 1,as_np:bool=Fal
         return out_array
     else:
         return out_list
+
+def make_num_degree_down(
+        num_block:List[int],
+        n:int = 7, 
+        increment:int = -1,
+        as_np:bool=False,
+        as_positive:bool = True,
+        
+        )-> Union[List[int], np.ndarray[np.int_]]:
+    """ 
+    the reason I have to write this function because 0,1 will be interpreted as the root note and only -1 means the 1 step below root note
+    it's only for my lib and it won't be useful somewhere else
+
+    as_positive will +8 to make the num_degree become positive
+
+    """
+    max_num = max(num_block)
+    num_block_negative = [num-max_num for num in num_block]
+
+    base_np_array = np.array(num_block_negative)
+    out_array_negative = np.array(num_block_negative)
+    for i in range(1,n+1):
+        np_array = base_np_array + i*increment
+        out_array_negative = np.append(out_array_negative, np_array)
+    
+    out_array_positive = out_array_negative + 8
+    out_list_negative = out_array_negative.tolist()
+    out_list_positive = out_array_positive.tolist()
+
+    if as_np:
+        if as_positive:
+            return out_array_positive
+        else:
+            return out_array_negative
+    else:
+        if as_positive:
+            return out_list_positive
+        else:
+            return out_list_negative
 
 
 
@@ -348,6 +389,24 @@ def test_convert_num_to_scale():
     print(actual01)
     expect01 = ["D4", " E4", " D4", " C4", " D4", " E4", " F4", " E4", " D4", " E4", " F4", " G4", " F4", " E4", " F4", " G4", " A4", " G4", " F4", " G4", " A4", " B4", " A4", " G4", " A4", " B4", " C5", " B4", " A4", " B4", " C5", " D5", " C5", " B4", " C5", " D5", " E5", " D5", " C5", " D5"]
     assert actual01 == expect01, inp.assert_message(actual01,expect01)
+def test_make_num_degree_down():
+    block01 = [3,2,1]
+    actual01 = make_num_degree_down(block01,6,as_np=False)
+    actual02 = make_num_degree_down(block01,6,as_np=True)
+    actual02 = make_num_degree_down(block01,6,as_np=False,as_positive=False)
+    actual02 = make_num_degree_down(block01,6,as_np=True,as_positive=False)
+
+
+    expect01 = [8, 7, 6, 7, 6, 5, 6, 5, 4, 5, 4, 3, 4, 3, 2, 3, 2, 1, 2, 1, 0]
+    expect02 = np.array(expect01)
+
+    print(actual01)
+    print(actual02)
+
+    assert actual01 == expect01, inp.assert_message(actual01,expect01)
+    assert np.array_equal(actual02 ,expect02), inp.assert_message(actual02, expect02)
+    
+
 ####################################
 
 def create_first_block():
@@ -372,8 +431,12 @@ def create_riff01():
 
 
 def main():
+    main_test()
     create_riff01()
     create_first_block()
+
+def main_test():
+    test_make_num_degree_down()
     # test_convert_num_to_scale()
     # test_make_num_seq()
     # test_midi_to_audio()
