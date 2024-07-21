@@ -1,5 +1,5 @@
 # use env => latest pandas
-from music21 import *
+from music21 import stream
 import pandas as pd
 from midi2audio import FluidSynth
 import fluidsynth
@@ -9,29 +9,121 @@ from mingus.core import scales, notes, intervals
 from functools import partial
 from mingus.containers import Note
 
+import inspect_py as inp
+# notes.int_to_note()
 # scales._Scale
+# based on migus 0.6.1
+
 ScaleType = Union[str, scales._Scale]
 
-def create_midi(out_filename:Union[Path,str], note_names:List[str], note_lengths:Union[None,List[float]]) -> None:
+# def create_midi(out_filename:Union[Path,str], note_names:List[str], note_lengths:Union[None,List[float]]) -> None:
+#     from music21 import stream,note,midi
+#     """
+#     Create a MIDI file with the specified note names and save it to the given filename.
+    
+#     Parameters:
+#     filename (str): The name of the MIDI file to be created.
+#     note_names (list): List of strings representing the names of the notes to be added to the MIDI file.
+    
+#     note_lengths: 1 represent quater note
+
+#     Returns:
+#     None
+#     """
+#     # Create a stream
+#     s = stream.Stream()
+
+#     # Add notes to the stream
+#     for i, note_name in enumerate(note_names):
+#         n = note.Note(note_name)
+#         if note_lengths is None:
+#             n.quarterLength = 1  # Each note lasts for one quarter note
+#         else:
+#             n.quarterLength = note_lengths[i]
+#         s.append(n)
+
+#     # Create a MIDI file
+#     mf = midi.translate.streamToMidiFile(s)
+    
+#     # Write the MIDI file
+#     mf.open(out_filename, 'wb')
+#     mf.write()
+#     mf.close()
+
+def create_midi(out_filename: Union[Path, str], 
+                note_names: List[str], 
+                note_lengths: Union[None, List[float]] = None,
+                bpm: float = 120) -> None:
+    from music21 import stream, note, midi, tempo
     """
-    Create a MIDI file with the specified note names and save it to the given filename.
+    Create a MIDI file with the specified note names, lengths, and tempo, then save it to the given filename.
     
     Parameters:
-    filename (str): The name of the MIDI file to be created.
-    note_names (list): List of strings representing the names of the notes to be added to the MIDI file.
+    out_filename (Union[Path, str]): The name of the MIDI file to be created.
+    note_names (List[str]): List of strings representing the names of the notes to be added to the MIDI file.
+    note_lengths (Union[None, List[float]]): List of note durations. 1.0 represents a quarter note. If None, all notes are quarter notes.
+    bpm (float): Tempo in beats per minute. Defaults to 120 BPM.
     
-    note_lengths: 1 represent quater note
-
     Returns:
     None
     """
     # Create a stream
     s = stream.Stream()
 
+    # Add tempo marking
+    t = tempo.MetronomeMark(number=bpm)
+    s.append(t)
+
     # Add notes to the stream
-    for note_name in note_names:
+    for i, note_name in enumerate(note_names):
         n = note.Note(note_name)
-        n.quarterLength = 1  # Each note lasts for one quarter note
+        if note_lengths is None:
+            n.quarterLength = 1  # Each note lasts for one quarter note
+        else:
+            n.quarterLength = note_lengths[i]
+        s.append(n)
+
+    # Create a MIDI file
+    mf = midi.translate.streamToMidiFile(s)
+    
+    # Write the MIDI file
+    mf.open(str(out_filename), 'wb')
+    mf.write()
+    mf.close()
+
+def create_midi_repeate_tempo(
+        out_filename:Union[Path,str], 
+        note_names:List[str], 
+        note_lengths:Union[None,List[float]],
+        bpm:float = 120,
+        longer_last_note:bool=1,
+        ) -> None:
+    """
+    do similar thing to create_midi but note_lengths is smarter because it would take only the block of note_lengths, and assume to have the same tempo the whole time
+    longer_last_note will extend the lastnote for a bit
+    """
+    from music21 import stream,note,midi,tempo
+    s = stream.Stream()
+
+    t = tempo.MetronomeMark(number=bpm)
+    s.append(t)
+    # if len(note_names) is not divisible by len(note_lengths) it would raise an error
+    if len(note_names) % len(note_lengths) != 0:
+        raise Exception(f"len(note_names) must be divisible by len(note_lengths), but got len(note_names)={len(note_names)} and len(note_lengths)={len(note_lengths)}")
+
+    n_repeat = len(note_names) // len(note_lengths)
+    note_lengths_repeat = note_lengths * n_repeat
+
+    # Add notes to the stream
+    for i, note_name in enumerate(note_names):
+        n = note.Note(note_name)
+        if note_lengths is None:
+            n.quarterLength = 1  # Each note lasts for one quarter note
+        else:
+            if (i == len(note_names) - 1):
+                n.quarterLength = note_lengths_repeat[i] + longer_last_note
+            else:
+                n.quarterLength = note_lengths_repeat[i]
         s.append(n)
 
     # Create a MIDI file
@@ -41,6 +133,8 @@ def create_midi(out_filename:Union[Path,str], note_names:List[str], note_lengths
     mf.open(out_filename, 'wb')
     mf.write()
     mf.close()
+
+    pass
 
     # print(f"MIDI file '{filename}' has been created with notes {', '.join(note_names)}.")
 
@@ -93,7 +187,7 @@ def convert_scale_degrees(
     to_scale_type: ScaleType,
     octave: int = 4
 ) -> List[str]:
-    def get_scale(key: str, scale_type: ScaleType) -> scales.Scale:
+    def get_scale(key: str, scale_type: ScaleType) -> scales._Scale:
         if isinstance(scale_type, scales.Scale):
             return scale_type
         elif isinstance(scale_type, type) and issubclass(scale_type, scales.Scale):
@@ -113,7 +207,7 @@ def convert_scale_degrees(
     to_scale = get_scale(to_key, to_scale_type)
     
     # Get the notes for the given scale degrees in the original scale
-    original_notes = [Note(from_scale.get_note(degree - 1), octave) for degree in scale_degrees]
+    original_notes = [Note(from_scale.get_notes(degree - 1), octave) for degree in scale_degrees]
     
     # Adjust octaves for notes above the reference octave
     for i, note in enumerate(original_notes):
@@ -133,12 +227,55 @@ def convert_scale_degrees(
     
     return transposed_notes_str
 
+def _get_scale(key: str, scale_type: ScaleType) -> scales._Scale:
+        if isinstance(scale_type, scales._Scale):
+            return scale_type
+        elif isinstance(scale_type, type) and issubclass(scale_type, scales._Scale):
+            return scale_type(key)
+        elif isinstance(scale_type, str):
+            scale_type = scale_type.lower()
+            if scale_type == "major":
+                return scales.Major(key)
+            elif scale_type in ["minor", "natural minor"]:
+                return scales.NaturalMinor(key)
+            else:
+                raise ValueError(f"Unsupported scale type string: {scale_type}")
+        else:
+            raise TypeError(f"Unsupported scale type: {type(scale_type)}")
 
 def convert_num_to_scale(scale_degrees:List[int], 
-                         key: str, 
-                         scale_type: ScaleType) -> List[str]:
-    convert_num_to_scale_partial = partial(convert_scale_degrees,from_key = "C", from_scale_type="major", to_scale_type=scale_type,to_key = key)
-    return convert_num_to_scale_partial
+                         key: str = "C", 
+                         octave: int = 4,
+                         scale_type: ScaleType = scales.Major,
+                         out_as_str:bool = True
+                         ) -> Union[List[str], List[Note]]:
+    scales_obj = _get_scale(key, scale_type)
+    scales = scales_obj.ascending()
+    # shift index by 1
+    #  0 & 1 would be the same note
+    # -1 -2 will refer to the note below
+    scales = [scales[0]] + scales
+    scales_notes = []
+
+    for degree in scale_degrees:
+        curr_octave = degree // 7
+        if degree % 7 == 0:
+            curr_degree = 7
+            add_to_octave = 0
+        else:
+            curr_degree = degree % 7
+            add_to_octave = degree // 7
+
+        curr_note = Note(scales[curr_degree],octave+add_to_octave )
+        scales_notes.append(curr_note)
+
+    scales_notes_str = [f"{note.name}{note.octave}" for note in scales_notes]
+
+    if out_as_str:
+        return scales_notes_str
+    else:
+        return scales_notes
+    
 
 def make_num_seq(num_block:List[int],n:int = 7, increment:int = 1,as_np:bool=False) -> List[int]:
     """
@@ -201,9 +338,45 @@ def test_make_num_seq():
     assert actual01 == expect01, inp.assert_message(actual01, expect01)
     assert np.array_equal(actual02 ,expect02), inp.assert_message(actual02, expect02)
 
+def test_convert_num_to_scale():
+    scale_degrees01 = [ 2,  3,  2,  1,  2,  3,  4,  3,  2,  3,  4,  5,  4,  3,  4,  5,  6,
+        5,  4,  5,  6,  7,  6,  5,  6,  7,  8,  7,  6,  7,  8,  9,  8,  7,
+        8,  9, 10,  9,  8,  9]
+    key01 = "C"
+    octave01 = 4
+    actual01 = convert_num_to_scale(scale_degrees01)
+    print(actual01)
+    expect01 = ["D4", " E4", " D4", " C4", " D4", " E4", " F4", " E4", " D4", " E4", " F4", " G4", " F4", " E4", " F4", " G4", " A4", " G4", " F4", " G4", " A4", " B4", " A4", " G4", " A4", " B4", " C5", " B4", " A4", " B4", " C5", " D5", " C5", " B4", " C5", " D5", " E5", " D5", " C5", " D5"]
+    assert actual01 == expect01, inp.assert_message(actual01,expect01)
+####################################
+
+def create_first_block():
+    note_lengths01 = [1,0.5,0.5,1,2]
+    note_names01 = ["D4", " E4", " D4", " C4", " D4"]
+    OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output")
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'test01.mid'
+    create_midi(OUTPUT_PATH01,note_names01,note_lengths01)
+
+def create_riff01():
+    block01 = [2,3,2,1,2]
+    note_lengths01 = [1,0.5,0.5,1,1]
+    scale_degrees01 = make_num_seq(block01,7,as_np=False)
+    riff_notes01 = convert_num_to_scale(scale_degrees01)
+
+    OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output")
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'test02_120bpm_long.mid'
+    OUTPUT_PATH02 = OUTPUT_FOLDER/ 'test02_240bpm_long.mid'
+
+    create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01)
+    create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
+
+
 def main():
-    test_make_num_seq()
-    test_midi_to_audio()
+    create_riff01()
+    create_first_block()
+    # test_convert_num_to_scale()
+    # test_make_num_seq()
+    # test_midi_to_audio()
 
 if __name__ == '__main__':
     main()
