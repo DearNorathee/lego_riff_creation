@@ -74,7 +74,7 @@ def create_midi_repeate_tempo(
         note_names:List[str], 
         note_lengths:Union[None,List[float]],
         bpm:float = 120,
-        longer_last_note:bool=1,
+        longer_last_note:Union[int,bool] =1,
         ) -> None:
     """
     do similar thing to create_midi but note_lengths is smarter because it would take only the block of note_lengths, and assume to have the same tempo the whole time
@@ -379,10 +379,12 @@ def create_midi_lego_riff_1file(
     ,lego_block_num: List[int]
     ,note_lengths: List[int]
     ,direction: Literal["up","down"]
+    ,bpm:int = 120
     ,n: int = 7
     ,key:str = "C"
     ,scale_type:ScaleType = "Major"
     ,root_degree:Union[Literal["max","min"],int] = "max"
+    ,longer_last_note:Union[bool,int] = False
     ) -> None:
     riff_notes = create_lego_riff_note(
         lego_block_num = lego_block_num
@@ -395,7 +397,7 @@ def create_midi_lego_riff_1file(
         ,out_as_str = True
         )
     
-    create_midi_repeate_tempo(out_filename,riff_notes,note_lengths)
+    create_midi_repeate_tempo(out_filename,riff_notes,note_lengths,bpm=bpm,longer_last_note=longer_last_note)
 
 
 ####################################
