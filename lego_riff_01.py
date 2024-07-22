@@ -7,13 +7,15 @@
 # create_midi_lego_riff_1file -> package the functions that I have with 3 inputs noteblock,note_lengh,n_repeat, bpm
 # create_midi_lego_riff_combi -> build on top of create_midi_lego_riff_1file that will create midi files with different scales, keys, bpm in a loop with ost
 
+# convert midi directly to mp3(not important bc I can use format factory for now)
+# try to do that manually(Clade Music_with_Code_03)
 
 from music21 import stream
 import pandas as pd
 from midi2audio import FluidSynth
 import fluidsynth
 from typing import *
-from pathlib import Path
+from pathlib import Path 
 from mingus.core import scales, notes, intervals
 from functools import partial
 from mingus.containers import Note
@@ -308,7 +310,7 @@ def make_num_degree_down(
         increment:int = -1,
         as_np:bool=False,
         as_positive:bool = True,
-        
+        root_degree:Union[Literal["max","min"],int] = "max"
         )-> Union[List[int], np.ndarray[np.int_]]:
     """ 
     the reason I have to write this function because 0,1 will be interpreted as the root note and only -1 means the 1 step below root note
@@ -317,8 +319,14 @@ def make_num_degree_down(
     as_positive will +8 to make the num_degree become positive
 
     """
-    max_num = max(num_block)
-    num_block_negative = [num-max_num for num in num_block]
+    if root_degree in ["max"]:
+        root_num = max(num_block)
+    elif root_degree in ["min"]:
+        root_num = min(num_block)
+    elif isinstance(root_degree, int):
+        root_num = root_degree
+
+    num_block_negative = [num-root_num for num in num_block]
 
     base_np_array = np.array(num_block_negative)
     out_array_negative = np.array(num_block_negative)
@@ -341,6 +349,53 @@ def make_num_degree_down(
         else:
             return out_list_negative
 
+def create_lego_riff_note(
+        lego_block_num: List[int]
+        ,direction: Literal["up","down"]
+        ,n: int = 7
+        ,key:str = "C"
+        ,scale_type:ScaleType = "Major"
+        ,root_degree:Union[Literal["max","min"],int] = "max"
+        ,out_as_str:bool = True
+        ) -> Union[List[Note],List[str]]:
+    
+    if direction.lower() in ["up"]:
+        scale_degrees = make_num_seq(lego_block_num, n=n, increment=1)
+    elif direction.lower() in ["down"]:
+        scale_degrees = make_num_degree_down(lego_block_num, n=n, increment=1,root_degree=root_degree)
+    else:
+        raise ValueError("direction must be either 'up' or 'down'")
+    
+    riff_notes_obj = convert_num_to_scale(scale_degrees,scale_type=scale_type,key=key,out_as_str=False)
+    riff_notes_str = convert_num_to_scale(scale_degrees,scale_type=scale_type,key=key,out_as_str=True)
+
+    if out_as_str:
+        return riff_notes_str
+    else:
+        return riff_notes_obj
+
+def create_midi_lego_riff_1file(
+    out_filename:Union[Path,str]
+    ,lego_block_num: List[int]
+    ,note_lengths: List[int]
+    ,direction: Literal["up","down"]
+    ,n: int = 7
+    ,key:str = "C"
+    ,scale_type:ScaleType = "Major"
+    ,root_degree:Union[Literal["max","min"],int] = "max"
+    ) -> None:
+    riff_notes = create_lego_riff_note(
+        lego_block_num = lego_block_num
+        ,note_lengths = note_lengths
+        ,direction = direction
+        ,n = n
+        ,key = key
+        ,scale_type = scale_type
+        ,root_degree = root_degree
+        ,out_as_str = True
+        )
+    
+    create_midi_repeate_tempo(out_filename,riff_notes,note_lengths)
 
 
 ####################################
@@ -389,8 +444,8 @@ def test_make_num_degree_down():
     block01 = [3,2,1]
     actual01 = make_num_degree_down(block01,6,as_np=False)
     actual02 = make_num_degree_down(block01,6,as_np=True)
-    actual03 = make_num_degree_down(block01,6,as_np=False,as_positive=False)
-    actual04 = make_num_degree_down(block01,6,as_np=True,as_positive=False)
+    actual03 = make_num_degree_down(block01,6,as_np=False,as_positive=False,root_degree="max")
+    actual04 = make_num_degree_down(block01,6,as_np=True,as_positive=False,root_degree="max")
 
 
     expect01 = [8, 7, 6, 7, 6, 5, 6, 5, 4, 5, 4, 3, 4, 3, 2, 3, 2, 1, 2, 1, 0]
@@ -398,8 +453,8 @@ def test_make_num_degree_down():
     expect03 = [0, -1, -2, -1, -2, -3, -2, -3, -4, -3, -4, -5, -4, -5, -6, -5, -6, -7, -6, -7, -8]
     expect04 = np.array(expect03)
 
-    print(actual03)
-    print(actual04)
+    # print(actual03)
+    # print(actual04)
 
     assert actual01 == expect01, inp.assert_message(actual01,expect01)
     assert np.array_equal(actual02 ,expect02), inp.assert_message(actual02, expect02)
@@ -442,10 +497,10 @@ def create_riff02():
     scale_degrees01 = make_num_degree_down(block01,5)
     riff_notes01 = convert_num_to_scale(scale_degrees01,scale_type="Minor")
 
-    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'riff_02_120bpm.mid'
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'riff_02_200bpm.mid'
     OUTPUT_PATH02 = OUTPUT_FOLDER/ 'riff_02_240bpm.mid'
 
-    create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01)
+    create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01,bpm=200)
     create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
 
 
