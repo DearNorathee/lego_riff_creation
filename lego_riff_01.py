@@ -30,6 +30,7 @@ import pandas as pd
 ScaleType = Union[scales._Scale,Literal["Major","Minor","Natural minor","Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian","Harmonic minor","Melodic minor","Whole tone","Chromatic"]]
 OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output")
 
+
 def create_lego_riff_note_combi(
     # out_prefixname:Union[Path,str]
     lego_block_num: List[int]
