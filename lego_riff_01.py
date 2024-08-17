@@ -1,4 +1,4 @@
-# use env => latest pandas
+# use env => latest python
 
 # took me about 2 days to produce the first 2 riffs(with the same key)
 
@@ -720,8 +720,21 @@ def create_riff02():
     create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01,bpm=200)
     create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
 
+def create_riff03():
+    block01 = [2,3,2,1,2]
+    note_lengths01 = [1,0.5,0.5,1,1]
+    scale_degrees01 = make_num_degree_down(block01,7,root_degree=1)
+    riff_notes01 = convert_num_to_scale(scale_degrees01)
+
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'riff_03_200bpm.mid'
+    OUTPUT_PATH02 = OUTPUT_FOLDER/ 'riff_03_240bpm.mid'
+
+    create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01,bpm=200)
+    create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
+
 
 def main_real_test():
+    create_riff03()
     create_riff02()
     create_block02()
     # create_riff01()
