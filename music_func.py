@@ -19,6 +19,7 @@ def create_lego_riff_note_combi(
     ,root_degree: Union[Literal["max","min"],int] = "max"
     ,octaves: Union[int,List[int]] = 3
     ,longer_last_note:Union[bool,int] = 1
+    ,include_reversed_notes:bool = True
     ) -> pd.DataFrame:
     # took about 1 hr(including testing)
     import pandas as pd
@@ -47,6 +48,11 @@ def create_lego_riff_note_combi(
         'A#': 'Bb'
     }
 
+    if include_reversed_notes:
+        reversed_notes_options = [False,True]
+    else:
+        reversed_notes_options = [False]
+
     for i, key in enumerate(key_s_in):
         if key in REPLACE_KEY_DICT.keys():
             key_s_in[i] = REPLACE_KEY_DICT[key]
@@ -61,34 +67,37 @@ def create_lego_riff_note_combi(
         for scale_type in scale_types_in:
             for key in key_s_in:
                 for octave in octaves_in:
-                    if isinstance(n,int):
-                        curr_riff_notes = create_lego_riff_note(
-                                            lego_block_num = lego_block_num
-                                            ,direction = direction
-                                            ,n = n
-                                            ,key = key
-                                            ,scale_type = scale_type
-                                            ,root_degree = root_degree
-                                            ,octave = octave
-                                            )
-                    elif isinstance(n,dict):
-                        curr_riff_notes = create_lego_riff_note(
-                                            lego_block_num = lego_block_num
-                                            ,direction = direction
-                                            ,n = n[direction]
-                                            ,key = key
-                                            ,scale_type = scale_type
-                                            ,root_degree = root_degree
-                                            ,octave = octave
-                                            )
-                    curr_dict = {
-                        "direction": direction,
-                        "scale_type": scale_type,
-                        "key": key,
-                        "octave": octave,
-                        "notes": curr_riff_notes
-                        }
-                    results.append(curr_dict)
+                    for is_reversed_note in reversed_notes_options:
+                        if isinstance(n,int):
+                            curr_riff_notes = create_lego_riff_note(
+                                                lego_block_num = lego_block_num
+                                                ,direction = direction
+                                                ,n = n
+                                                ,key = key
+                                                ,scale_type = scale_type
+                                                ,root_degree = root_degree
+                                                ,octave = octave
+                                                ,reverse_notes=is_reversed_note
+                                                )
+                        elif isinstance(n,dict):
+                            curr_riff_notes = create_lego_riff_note(
+                                                lego_block_num = lego_block_num
+                                                ,direction = direction
+                                                ,n = n[direction]
+                                                ,key = key
+                                                ,scale_type = scale_type
+                                                ,root_degree = root_degree
+                                                ,octave = octave
+                                                ,reverse_notes=is_reversed_note
+                                                )
+                        curr_dict = {
+                            "direction": direction,
+                            "scale_type": scale_type,
+                            "key": key,
+                            "octave": octave,
+                            "notes": curr_riff_notes
+                            }
+                        results.append(curr_dict)
 
     out_df = pd.DataFrame(results)
     return out_df
@@ -372,6 +381,7 @@ def create_lego_riff_note(
         ,root_degree:Union[Literal["max","min"],int] = "max"
         ,octave:int = 3
         ,out_as_str:bool = True
+        ,reverse_notes:bool = False
         ) -> Union[List[Note],List[str]]:
     # medium tested
     """
@@ -386,6 +396,8 @@ def create_lego_riff_note(
         root_degree (Union[Literal["max","min"],int], optional): The root degree of the scale. Defaults to "max".
         out_as_str (bool, optional): Whether to output the riff as a list of strings or a list of Note objects. Defaults to True.
 
+        reverse_notes will reverse the order of the notes(lego_block_num)
+
     Returns:
         Union[List[Note],List[str]]: The generated riff as a list of Note objects or a list of strings.
 
@@ -393,12 +405,21 @@ def create_lego_riff_note(
         ValueError: If the direction is neither "up" nor "down".
     """
     
-    if direction.lower() in ["up"]:
-        scale_degrees = make_num_seq(lego_block_num, n=n, increment=1)
-    elif direction.lower() in ["down"]:
-        scale_degrees = make_num_degree_down(lego_block_num, n=n, increment=-1,root_degree=root_degree)
+    lego_block_num_reversed = lego_block_num[::-1]
+    if reverse_notes:
+        if direction.lower() in ["up"]:
+            scale_degrees = make_num_seq(lego_block_num_reversed, n=n, increment=1)
+        elif direction.lower() in ["down"]:
+            scale_degrees = make_num_degree_down(lego_block_num_reversed, n=n, increment=-1,root_degree=root_degree)
+        else:
+            raise ValueError("direction must be either 'up' or 'down'")
     else:
-        raise ValueError("direction must be either 'up' or 'down'")
+        if direction.lower() in ["up"]:
+            scale_degrees = make_num_seq(lego_block_num, n=n, increment=1)
+        elif direction.lower() in ["down"]:
+            scale_degrees = make_num_degree_down(lego_block_num, n=n, increment=-1,root_degree=root_degree)
+        else:
+            raise ValueError("direction must be either 'up' or 'down'")
     
     riff_notes_obj = convert_num_to_scale(scale_degrees,scale_type=scale_type,key=key,out_as_str=False,octave=octave)
     riff_notes_str = convert_num_to_scale(scale_degrees,scale_type=scale_type,key=key,out_as_str=True,octave=octave)

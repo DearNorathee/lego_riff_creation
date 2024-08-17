@@ -61,6 +61,33 @@ def create_riff01():
     create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01)
     create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01,bpm=240)
 
+def create_riff01_variation():
+    block01 = [2,3,2,1,2]
+    block01_reversed = block01[::-1]
+
+    note_lengths01 = [1,0.5,0.5,1,1]
+    note_lengths01_reversed = note_lengths01[::-1]
+
+    scale_degrees01 = make_num_seq(block01,7,as_np=False)
+    scale_degrees01_reversed = make_num_seq(block01_reversed,7,as_np=False)
+
+    riff_notes01 = convert_num_to_scale(scale_degrees01)
+    riff_notes01_reversed = convert_num_to_scale(scale_degrees01_reversed)
+
+
+    OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output\reverse_riff")
+    OUTPUT_PATH01 = OUTPUT_FOLDER/ 'test01_normal.mid'
+    OUTPUT_PATH02 = OUTPUT_FOLDER/ 'test01_reverse_tempo.mid'
+    OUTPUT_PATH03 = OUTPUT_FOLDER/ 'test01_reverse_note.mid'
+    OUTPUT_PATH04 = OUTPUT_FOLDER/ 'test01_reverse_all.mid'
+
+    create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01,note_lengths01,bpm=240)
+    create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes01,note_lengths01_reversed,bpm=240)
+    create_midi_repeate_tempo(OUTPUT_PATH03,riff_notes01_reversed,note_lengths01,bpm=240)
+    create_midi_repeate_tempo(OUTPUT_PATH04,riff_notes01_reversed,note_lengths01_reversed,bpm=240)
+    print()
+
+
 def create_riff02():
     block01 = [3,2,1]
     note_lengths01 = [0.75,0.25,1]
@@ -87,9 +114,10 @@ def create_riff03():
 
 
 def main_real_test():
-    create_riff03()
-    create_riff02()
-    create_block02()
+    create_riff01_variation()
+    # create_riff03()
+    # create_riff02()
+    # create_block02()
     # create_riff01()
     # create_block01()
 
