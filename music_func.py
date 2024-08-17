@@ -2,6 +2,8 @@ from typing import List, Union, Dict, Literal
 import pandas as pd
 from pathlib import Path
 from mingus.core import scales, notes, intervals
+from mingus.containers import Note
+import numpy as np
 
 ScaleType = Union[scales._Scale,Literal["Major","Minor","Natural minor","Ionian","Dorian","Phrygian","Lydian","Mixolydian","Aeolian","Locrian","Harmonic minor","Melodic minor","Whole tone","Chromatic"]]
 
