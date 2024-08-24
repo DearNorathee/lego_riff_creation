@@ -133,8 +133,21 @@ def test_create_midi_lego_riff_1file():
             riff_info_only = {key: info_dict[key] for key in info_dict.keys() if key not in ["out_filename","note_lengths","bpm","longer_last_note"] }
             riff_notes = create_lego_riff_note(**riff_info_only)
             create_midi_lego_riff_1file(**info_dict)
+def test_permutation_non_repeated():
+    from itertools import permutations
+    input01 = [2, 3, 2, 1, 2]
+    input02 = [2, 3, 2, 1]
+    rhythm01 = [1, 0.5, 0.5, 1, 1]
+    actual01_01 = permutation_non_repeated(input01)
+    actual01_02 = permutation_non_repeated(input01,exclude_ori_sequence=True)
+    actual02 = permutation_non_repeated(input02)
+
+    actual03 = list(permutations(rhythm01))
+
+    print(actual01_01)
 
 def main_test():
+    test_permutation_non_repeated()
     test_create_lego_riff_note_combi()
     test_create_midi_lego_riff_1file()
     test_make_num_degree_down()

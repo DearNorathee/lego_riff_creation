@@ -65,9 +65,9 @@ def create_lego_riff_note_combi(
 
     for direction in directions_in:
         for scale_type in scale_types_in:
-            for key in key_s_in:
-                for octave in octaves_in:
-                    for is_reversed_note in reversed_notes_options:
+            for is_reversed_note in reversed_notes_options:
+                for key in key_s_in:
+                    for octave in octaves_in:
                         if isinstance(n,int):
                             curr_riff_notes = create_lego_riff_note(
                                                 lego_block_num = lego_block_num
@@ -95,7 +95,8 @@ def create_lego_riff_note_combi(
                             "scale_type": scale_type,
                             "key": key,
                             "octave": octave,
-                            "notes": curr_riff_notes
+                            "notes": curr_riff_notes,
+                            "reversed_notes": is_reversed_note
                             }
                         results.append(curr_dict)
 
@@ -458,4 +459,28 @@ def create_midi_lego_riff_1file(
         )
     
     create_midi_repeate_tempo(out_filename,riff_notes,note_lengths,bpm=bpm,longer_last_note=longer_last_note)
+
+def permutation_non_repeated(sequence: List[int],exclude_ori_sequence:bool = False) -> List[List[int]]:
+    """
+    create a permutation of the sequence that does not contain repeated elements(next element)
+    """
+    from collections import Counter
+    def backtrack(current: List[int], remaining: Counter):
+        if len(current) == len(sequence):
+            arrangements.append(current[:])
+            return
+
+        for num in remaining:
+            if remaining[num] > 0 and (not current or num != current[-1]):
+                current.append(num)
+                remaining[num] -= 1
+                backtrack(current, remaining)
+                current.pop()
+                remaining[num] += 1
+
+    arrangements = []
+    backtrack([], Counter(sequence))
+    if exclude_ori_sequence:
+        arrangements.remove(sequence)
+    return arrangements
 
