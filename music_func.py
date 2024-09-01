@@ -287,6 +287,8 @@ def convert_num_to_scale(scale_degrees:List[int],
         else:
             curr_degree = degree % 7
             add_to_octave = degree // 7
+            if add_to_octave < 0:
+                curr_degree += 1
 
         curr_note = Note(scales[curr_degree],octave+add_to_octave )
         scales_notes.append(curr_note)

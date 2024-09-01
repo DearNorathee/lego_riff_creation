@@ -74,9 +74,16 @@ def test_convert_num_to_scale():
     key01 = "C"
     octave01 = 4
     actual01 = convert_num_to_scale(scale_degrees01)
-    print(actual01)
-    expect01 = ["D4", " E4", " D4", " C4", " D4", " E4", " F4", " E4", " D4", " E4", " F4", " G4", " F4", " E4", " F4", " G4", " A4", " G4", " F4", " G4", " A4", " B4", " A4", " G4", " A4", " B4", " C5", " B4", " A4", " B4", " C5", " D5", " C5", " B4", " C5", " D5", " E5", " D5", " C5", " D5"]
+    # print(actual01)
+    expect01 = ["D4", "E4", "D4", "C4", "D4", "E4", "F4", "E4", "D4", "E4", "F4", "G4", "F4", "E4", "F4", "G4", "A4", "G4", "F4", "G4", "A4", "B4", "A4", "G4", "A4", "B4", "C5", "B4", "A4", "B4", "C5", "D5", "C5", "B4", "C5", "D5", "E5", "D5", "C5", "D5"]
+    # test for negative, 0
+
+    scale_degrees02 = [5,3,1,      -1,  -2,    1,    0,2]
+    expect02 = ['G4', 'E4', 'C4', 'B3', 'A3', 'C4', 'C4', 'D4']
+    actual02 = convert_num_to_scale(scale_degrees02)
+
     assert actual01 == expect01, inp.assert_message(actual01,expect01)
+    print(actual02)
 def test_make_num_degree_down():
     block01 = [3,2,1]
     actual01 = make_num_degree_down(block01,6,as_np=False)
@@ -147,11 +154,11 @@ def test_permutation_non_repeated():
     print(actual01_01)
 
 def main_test():
-    test_permutation_non_repeated()
-    test_create_lego_riff_note_combi()
-    test_create_midi_lego_riff_1file()
-    test_make_num_degree_down()
-    # test_convert_num_to_scale()
+    # test_permutation_non_repeated()
+    # test_create_lego_riff_note_combi()
+    # test_create_midi_lego_riff_1file()
+    # test_make_num_degree_down()
+    test_convert_num_to_scale()
     # test_make_num_seq()
     # test_midi_to_audio()
 
