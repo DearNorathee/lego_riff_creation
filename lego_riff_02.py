@@ -1,6 +1,10 @@
 from pathlib import Path 
 from music_func import *
 
+# NEXT: fix negative riff is still wrong when using negative number
+    # the root cause is coming from make_num_degree_down
+    # when as_positive = True, only negative note is wrong(fix this as there are less things to fix)
+    # if as_positive = False => it's still a mess(I don't think that it's worth fixing it as this point)
 OUTPUT_FOLDER = Path(r"H:\D_Music\Riffs & Runs\Python Riff")
 
 def create_riff03():
@@ -19,7 +23,7 @@ def create_riff03():
 def create_riff04():
     block01 = [1,3,5,6,4,5,3,4]
     note_lengths01 = [1,1,1,1,1,1,1,1]
-
+    
     block02 = [5,3,1,-1,2,1,3,2]
     note_lengths02 = [1,1,1,1,1,1,1,1]
 
@@ -30,7 +34,7 @@ def create_riff04():
     riff_notes02_down = convert_num_to_scale(scale_degrees02,key="C")
 
     OUTPUT_PATH01 = OUTPUT_FOLDER/ 'riff_04_key_C_up_350bpm.mid'
-    OUTPUT_PATH02 = OUTPUT_FOLDER/ 'riff_04_key_C__down_reverse_350bpm.mid'
+    OUTPUT_PATH02 = OUTPUT_FOLDER/ 'riff_04_key_C__down_reverse_350bpm_v02.mid'
 
     create_midi_repeate_tempo(OUTPUT_PATH01,riff_notes01_up,note_lengths01,bpm=350)
     create_midi_repeate_tempo(OUTPUT_PATH02,riff_notes02_down,note_lengths01,bpm=350)
