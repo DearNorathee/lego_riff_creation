@@ -17,12 +17,12 @@ def test_create_midi_lego_riff_combi():
 
     input_test_list = [None]*100
     input_test_list[0] = {
-        "out_prefixname": "Dawn.mid"
+        "out_prefixname": "Dawn"
         ,"lego_block_num": [2,3,2,1,2]
         ,"note_lengths": [1,0.5,0.5,1,1]
         ,"scale_types": ["Major"]
         ,"directions": ["up","down"]
-        ,"bpms": [100,240,200]
+        ,"bpms": [100,120,180, 200,240, 300,350,400]
         ,"n": 7
         ,"root_degree": "max"
         ,"longer_last_note": 1
@@ -32,11 +32,11 @@ def test_create_midi_lego_riff_combi():
     }
 
     input_test_list[1] = {
-        "out_prefixname": "Dusk.mid"
+        "out_prefixname": "Dusk"
         ,"lego_block_num": [3,2,1]
         ,"scale_types": ["Major"]
         ,"note_lengths":  [0.75,0.25,1]
-        ,"bpms": 200
+        ,"bpms": [100,120,180, 200,240, 300,350,400]
         ,"n": 6
         ,"root_degree": 2
         ,"longer_last_note": 1
