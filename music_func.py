@@ -18,7 +18,7 @@ def create_lego_riff_note_combi(
     ,scale_types: Union[ScaleType, List[ScaleType]] = ["Major","Natural minor","Dorian","Phrygian","Lydian","Mixolydian","Locrian"]
     ,root_degree: Union[Literal["max","min"],int] = "max"
     ,octaves: Union[int,List[int]] = 3
-    ,longer_last_note:Union[bool,int] = 1
+    # ,longer_last_note:Union[bool,int] = 1
     ,include_reversed_notes:bool = True
     ) -> pd.DataFrame:
     # took about 1 hr(including testing)
@@ -109,6 +109,7 @@ def create_midi_lego_riff_combi(
     out_prefixname:Union[Path,str]
     ,lego_block_num: List[int]
     ,note_lengths: List[int]
+    ,output_folder: str = ""
     ,directions: Union[List[str],Literal["up","down"]] = ["up","down"]
     ,bpms: Union[int,List[int]] = 120
     ,n: Union[int,  Dict[Literal["up","down"],int]  ] = 7
@@ -117,16 +118,23 @@ def create_midi_lego_riff_combi(
     ,root_degree: Union[Literal["max","min"],int] = "max"
     ,octaves: Union[int,List[int]] = 3
     ,longer_last_note:Union[bool,int] = 1
+    ,include_reversed_notes:bool = True
+    ,use_full_name:bool = False,
     ) -> None:
 
     # has error with D# as key Gb
-
+    
     """
     out_prefixname is without ".mid"
     signature function
 
     build on top of create_midi_lego_riff_1file to loop through different parameters and create a combination of midi files
-    n can be int or dict  with key "up" and "down" eg n = {"up":6,"down":7}
+    n can be int or dict represents how many cycles you what riff to go through
+    
+    with key "up" and "down" eg n = {"up":6,"down":7}
+
+    if use_full_name set to True, it will use all combinations of the names,
+        if False it would remove the attribute that has only 1 input(eg direction only up, it won't include "_up" in the filename)
 
     """
     import os_toolkit as ost
@@ -136,8 +144,68 @@ def create_midi_lego_riff_combi(
     key_s_in = list(key_s) if isinstance(key_s,list) else [key_s]
     octaves_in = list(octaves) if isinstance(octaves,list) else [octaves]
     bpms_in = list(bpms) if isinstance(directions,list) else [bpms]
+    bpms_str_list = [str(x) + " bmp" for x in bpms_in]
 
-    pass
+    note_combi_df = create_lego_riff_note_combi(
+        lego_block_num = lego_block_num
+        ,directions = directions_in
+        ,n = n
+        ,key_s = key_s_in
+        ,scale_types = scale_types_in
+        ,root_degree = root_degree
+        ,octaves = octaves_in
+        ,include_reversed_notes = include_reversed_notes
+    )
+    # {'direction','scale_type','key','octave','notes'}
+    filename_df = note_combi_df.copy()
+    filename_df_with_bmp = pd.concat([filename_df] * len(bpms_str_list), ignore_index=True)
+    filename_df_with_bmp['bmp'] = bpms_str_list * len(filename_df)
+
+    if use_full_name is False:
+        if len(directions_in) == 1:
+            filename_df_with_bmp['direction'] = ""
+        if len(scale_types_in) == 1:
+            filename_df_with_bmp['scale_type'] = ""
+
+        filename_df_with_bmp['key'] = "Key " + filename_df_with_bmp['key'] 
+
+        if len(octaves_in) == 1:
+            filename_df_with_bmp['octave'] = ""
+        if len(scale_types_in) == 1:
+            filename_df_with_bmp['scale_type'] = ""
+        
+        if include_reversed_notes:
+            filename_df_with_bmp["reversed_notes"] = filename_df_with_bmp["reversed_notes"].astype(str)
+            filename_df_with_bmp.loc[filename_df_with_bmp['reversed_notes'] == "True", 'reversed_notes'] = ""
+            filename_df_with_bmp.loc[filename_df_with_bmp['reversed_notes'] == "False", 'reversed_notes'] = "reversed"
+        else:
+            filename_df_with_bmp['reversed_notes'] = ""
+
+        # filename_df_expanded = filename_df.copy()
+        
+        # created new col: 'bmp'
+        # filename_df['bmp'] =
+    filename_df_with_bmp['filename'] = filename_df_with_bmp[["direction",'scale_type','octave','reversed_notes','bmp']].astype(str).agg('_'.join, axis=1)
+    filename_df_with_bmp['filename'] = filename_df_with_bmp['filename'].str.replace('_+', '_', regex=True)
+    filename_df_with_bmp['filename'] = filename_df_with_bmp['filename'].str.rstrip('_')
+    filename_df_with_bmp['filename'] = out_prefixname + filename_df_with_bmp['filename'] + ".mid"
+    filename_df_with_bmp['filepath'] = str(output_folder) + "/" + filename_df_with_bmp['filename'] 
+    filename_df_with_bmp.apply(lambda row: create_midi_repeate_tempo
+                            (
+                                out_filename = row["filepath"]
+                                ,note_names = row["notes"]
+                                ,note_lengths = note_lengths
+                                ,bpm = row['bpm']
+                                ,longer_last_note = longer_last_note
+                            )
+                            
+                            , axis = 1)
+    # create_midi_repeate_tempo()
+    print() 
+
+    
+
+
 def create_midi(out_filename: Union[Path, str], 
                 note_names: List[str], 
                 note_lengths: Union[None, List[float]] = None,

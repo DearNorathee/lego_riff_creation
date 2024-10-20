@@ -5,12 +5,53 @@ from mingus.core import scales, notes, intervals
 from music_func import *
 import inspect_py as inp
 
-OUTPUT_FOLDER = Path(r"C:\Users\Heng2020\OneDrive\D_Code\Python\Python Music\2024\01 Lego Riff Creation\lego_riff_creation\test_output")
+LEGO_RIFF_FOLDER = Path(__file__).parent
+
+TEST_FOLDER = LEGO_RIFF_FOLDER / "test_output"
+
+def test_create_midi_lego_riff_combi():
+    OUTPUT_FOLDER = TEST_FOLDER / "test_create_midi_lego_riff_combi"
+    OUTPUT_FOLDER_LIST = [None]*100
+    OUTPUT_FOLDER_LIST[0] = OUTPUT_FOLDER / "test_0"
+    OUTPUT_FOLDER_LIST[1] = OUTPUT_FOLDER / "test_1"
+
+    input_test_list = [None]*100
+    input_test_list[0] = {
+        "out_prefixname": "Dawn.mid"
+        ,"lego_block_num": [2,3,2,1,2]
+        ,"note_lengths": [1,0.5,0.5,1,1]
+        ,"scale_types": ["Major"]
+        ,"directions": ["up","down"]
+        ,"bpms": [100,240,200]
+        ,"n": 7
+        ,"root_degree": "max"
+        ,"longer_last_note": 1
+        ,"include_reversed_notes": True
+        ,"output_folder": OUTPUT_FOLDER_LIST[0]
+        
+    }
+
+    input_test_list[1] = {
+        "out_prefixname": "Dusk.mid"
+        ,"lego_block_num": [3,2,1]
+        ,"scale_types": ["Major"]
+        ,"note_lengths":  [0.75,0.25,1]
+        ,"bpms": 200
+        ,"n": 6
+        ,"root_degree": 2
+        ,"longer_last_note": 1
+        ,"output_folder": OUTPUT_FOLDER_LIST[1]
+        
+    }
+    for info_dict in input_test_list:
+        if info_dict:
+            # riff_info_only = {key: info_dict[key] for key in info_dict.keys() if key not in ["out_filename","note_lengths","bpm","longer_last_note"] }
+            riff_notes = create_midi_lego_riff_combi(**info_dict)
 
 def test_create_lego_riff_note_combi():
     input_test_list = [None]*100
     input_test_list[0] = {
-        "out_filename": OUTPUT_FOLDER / "Dawn_create_1_file_240bpm_v01.mid"
+        "out_filename": TEST_FOLDER / "Dawn_create_1_file_240bpm_v01.mid"
         ,"lego_block_num": [2,3,2,1,2]
         ,"note_lengths": [1,0.5,0.5,1,1]
         ,"directions": "up"
@@ -22,7 +63,7 @@ def test_create_lego_riff_note_combi():
     }
 
     input_test_list[1] = {
-        "out_filename": OUTPUT_FOLDER / "Dusk_create_1_file_200bpm_v01.mid"
+        "out_filename": TEST_FOLDER / "Dusk_create_1_file_200bpm_v01.mid"
         ,"lego_block_num": [3,2,1]
         ,"note_lengths":  [0.75,0.25,1]
         ,"bpm": 200
@@ -109,7 +150,7 @@ def test_make_num_degree_down():
 def test_create_midi_lego_riff_1file():
     input_test_list = [None]*100
     input_test_list[0] = {
-        "out_filename": OUTPUT_FOLDER / "Dawn_create_1_file_240bpm_v01.mid"
+        "out_filename": TEST_FOLDER / "Dawn_create_1_file_240bpm_v01.mid"
         ,"lego_block_num": [2,3,2,1,2]
         ,"note_lengths": [1,0.5,0.5,1,1]
         ,"direction": "up"
@@ -123,7 +164,7 @@ def test_create_midi_lego_riff_1file():
     }
 
     input_test_list[1] = {
-        "out_filename": OUTPUT_FOLDER / "Dusk_create_1_file_200bpm_v01.mid"
+        "out_filename": TEST_FOLDER / "Dusk_create_1_file_200bpm_v01.mid"
         ,"lego_block_num": [3,2,1]
         ,"note_lengths":  [0.75,0.25,1]
         ,"direction": "down"
@@ -155,10 +196,11 @@ def test_permutation_non_repeated():
 
 def main_test():
     # test_permutation_non_repeated()
-    # test_create_lego_riff_note_combi()
+    test_create_midi_lego_riff_combi()
+    test_create_lego_riff_note_combi()
     # test_create_midi_lego_riff_1file()
     # test_make_num_degree_down()
-    test_convert_num_to_scale()
+    # test_convert_num_to_scale()
     # test_make_num_seq()
     # test_midi_to_audio()
 
