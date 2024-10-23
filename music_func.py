@@ -1,3 +1,4 @@
+# Next: test_create_midi_lego_riff_combi, Notes, and filename is not correct yet
 from typing import List, Union, Dict, Literal
 import pandas as pd
 from pathlib import Path
@@ -169,8 +170,12 @@ def create_midi_lego_riff_combi(
     # {'direction','scale_type','key','octave','notes'}
     filename_df = note_combi_df.copy()
     filename_df_with_bpm = pd.concat([filename_df] * len(bpms_str_list), ignore_index=True)
-    filename_df_with_bpm['bpm'] = bpms_in * len(filename_df)
-    filename_df_with_bpm['bpm_str'] = bpms_str_list * len(filename_df)
+    
+    bpms_in_repeat = [item for item in bpms_in for _ in range(len(filename_df))]
+    bpms_str_repeat = [item for item in bpms_str_list for _ in range(len(filename_df))]
+
+    filename_df_with_bpm['bpm'] = bpms_in_repeat
+    filename_df_with_bpm['bpm_str'] = bpms_str_repeat
 
     if use_full_name is False:
         if len(directions_in) == 1:
