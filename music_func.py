@@ -398,7 +398,79 @@ def convert_num_to_scale(scale_degrees:List[int],
         return scales_notes_str
     else:
         return scales_notes
+
+def convert_num_to_scale(
+    scale_degrees: List[int],
+    key: str = "C",
+    octave: int = 4,
+    scale_type: ScaleType = scales.Major,
+    out_as_str: bool = True
+    ) -> Union[List[str], List[Note]]:
+
+    # provided by o1, as of Oct 23, 2024
+
+    # Initialize the scale
+    scales_obj = _get_scale(key, scale_type)
+    scales_notes = scales_obj.ascending()
+
+    # shift index by 1
+    #  0 & 1 would be the same note
+    # -1 -2 will refer to the note below
+
+    scale_degrees_mutate = []
+    for degree in scale_degrees:
+        if degree > 0:
+            degree_mutate = degree
+        else:
+            degree_mutate = degree + 1
+        scale_degrees_mutate.append(degree_mutate)
     
+    # Map note names to semitone numbers
+    note_semitone_mapping = {'C': 0, 'C#': 1, 'D': 2, 'D#': 3,
+                             'E': 4, 'F': 5, 'F#': 6, 'G': 7,
+                             'G#': 8, 'A': 9, 'A#': 10, 'B': 11,
+
+                             'Db': 1, 'Eb':3,'Gb':6, 'Ab':8, 'Bb': 10,
+                             'E#': 5, 'B#': 0,
+                             }
+    semitone_number_to_note_name = {v: k for k, v in note_semitone_mapping.items()}
+    
+    # Get the key's semitone number
+    key_semitone_number = note_semitone_mapping[key]
+    
+    # Calculate semitone offsets for the scale
+    semitone_offsets = []
+    for note_name in scales_notes:
+        note_semitone_number = note_semitone_mapping[note_name]
+        semitone_offset = (note_semitone_number - key_semitone_number) % 12
+        semitone_offsets.append(semitone_offset)
+    
+    # Starting MIDI note number
+    starting_midi_number = 12 * (octave + 1) + key_semitone_number
+    
+    # Convert scale degrees to notes
+    scales_output = []
+    len_scale = len(semitone_offsets)
+    for i, degree in enumerate(scale_degrees_mutate):
+        if degree >= 8:
+            # for debugging
+            print()
+        octave_adjustment = (degree - 1) // (len_scale-1)
+        degree_index = (degree - 1) % (len_scale-1)
+        semitone_offset = semitone_offsets[degree_index] + octave_adjustment * 12
+        total_semitone_number = starting_midi_number + semitone_offset
+        note_semitone_number = total_semitone_number % 12
+        note_octave = (total_semitone_number // 12) - 1
+        note_name = semitone_number_to_note_name[note_semitone_number]
+        curr_note = Note(note_name, note_octave)
+        scales_output.append(curr_note)
+
+    scales_notes_str = [f"{note.name}{note.octave}" for note in scales_output]
+    if out_as_str:
+        return scales_notes_str
+    else:
+        return scales_output
+
 
 def make_num_seq(num_block:List[int],n:int = 7, increment:int = 1,as_np:bool=False) -> Union[List[int], np.ndarray[np.int_]]:
 

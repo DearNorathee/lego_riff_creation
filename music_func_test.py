@@ -1,3 +1,6 @@
+# not done fixing yet
+# the problem seems to come from convert_num_to_scale, please add the test for every key
+# right now it works for some keys
 from typing import List, Union, Dict, Literal
 import pandas as pd
 from pathlib import Path
@@ -22,7 +25,7 @@ def test_create_midi_lego_riff_combi():
         ,"note_lengths": [1,0.5,0.5,1,1]
         ,"scale_types": ["Major"]
         ,"directions": ["up","down"]
-        ,"bpms": [100,120,180, 200,240, 300,350,400]
+        ,"bpms": [180, 200,240,300,350,400]
         ,"n": 7
         ,"root_degree": "max"
         ,"longer_last_note": 1
@@ -36,7 +39,7 @@ def test_create_midi_lego_riff_combi():
         ,"lego_block_num": [3,2,1]
         ,"scale_types": ["Major"]
         ,"note_lengths":  [0.75,0.25,1]
-        ,"bpms": [100,120,180, 200,240, 300,350,400]
+        ,"bpms": [180, 200,240, 300,350,400]
         ,"n": 6
         ,"root_degree": 2
         ,"longer_last_note": 1
@@ -49,9 +52,11 @@ def test_create_midi_lego_riff_combi():
             riff_notes = create_midi_lego_riff_combi(**info_dict)
 
 def test_create_lego_riff_note_combi():
+    
+    OUTPUT_FOLDER = TEST_FOLDER / "test_create_lego_riff_note_combi"
     input_test_list = [None]*100
     input_test_list[0] = {
-        "out_filename": TEST_FOLDER / "Dawn_create_1_file_240bpm_v01.mid"
+        "out_filename": OUTPUT_FOLDER / "Dawn_create_1_file_240bpm_v01.mid"
         ,"lego_block_num": [2,3,2,1,2]
         ,"note_lengths": [1,0.5,0.5,1,1]
         ,"directions": "up"
@@ -59,23 +64,28 @@ def test_create_lego_riff_note_combi():
         ,"n": 7
         ,"root_degree": "max"
         ,"longer_last_note": 1
+        ,"key_s": ["B"]
+        ,"scale_types": ["Major"]
         
     }
 
     input_test_list[1] = {
-        "out_filename": TEST_FOLDER / "Dusk_create_1_file_200bpm_v01.mid"
+        "out_filename": OUTPUT_FOLDER / "Dusk_create_1_file_200bpm_v01.mid"
         ,"lego_block_num": [3,2,1]
         ,"note_lengths":  [0.75,0.25,1]
         ,"bpm": 200
         ,"n": 6
         ,"root_degree": 2
         ,"longer_last_note": 1
+        ,"key_s": ["B"]
+        ,"scale_types": ["Major"]
         
     }
     for info_dict in input_test_list:
         if info_dict:
             riff_info_only = {key: info_dict[key] for key in info_dict.keys() if key not in ["out_filename","note_lengths","bpm","longer_last_note"] }
             riff_notes = create_lego_riff_note_combi(**riff_info_only)
+            print()
             
 
 def test_midi_to_audio():
@@ -122,9 +132,13 @@ def test_convert_num_to_scale():
     scale_degrees02 = [5,3,1,      -1,  -2,    1,    0,2]
     expect02 = ['G4', 'E4', 'C4', 'B3', 'A3', 'C4', 'C4', 'D4']
     actual02 = convert_num_to_scale(scale_degrees02)
-
+    
+    key03 = "B"
+    actual03 = convert_num_to_scale(scale_degrees01,key03)
+    print(actual03)
+    # ['C#3', 'D#3', 'C#3', 'B4', 'C#3', 'D#3', 'E3', 'D#3', 'C#4', 'D#4', 'E4', 'F#4', 'E4', 'D#4', 'E4', 'F#4', 'G#4', 'F#4', 'E4', 'F#4', 'G#4', 'A#4', 'G#4', 'F#4', 'G#4', 'A#4', 'B5', 'A#4', 'G#4', 'A#4', 'B5', 'C#5', 'B5', 'A#4', 'B5', 'C#5', 'D#5', 'C#5', 'B5', 'C#5']
     assert actual01 == expect01, inp.assert_message(actual01,expect01)
-    print(actual02)
+    assert actual02 == expect02, inp.assert_message(actual02,expect02)
 def test_make_num_degree_down():
     block01 = [3,2,1]
     actual01 = make_num_degree_down(block01,6,as_np=False)
@@ -196,11 +210,11 @@ def test_permutation_non_repeated():
 
 def main_test():
     # test_permutation_non_repeated()
+    # test_convert_num_to_scale()
+    # test_create_lego_riff_note_combi()
     test_create_midi_lego_riff_combi()
-    test_create_lego_riff_note_combi()
     # test_create_midi_lego_riff_1file()
     # test_make_num_degree_down()
-    # test_convert_num_to_scale()
     # test_make_num_seq()
     # test_midi_to_audio()
 
