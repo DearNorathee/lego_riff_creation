@@ -14,3 +14,5 @@ print(mingus.__version__)
 # from mingus.core import scales, notes, intervals
 print(scales.Ionian("C").ascending())
 fluidsynth.play_Note("C",4)
+
+import riff_music as riff

@@ -1,4 +1,8 @@
 # Next: test_create_midi_lego_riff_combi, Notes, and filename is not correct yet
+
+# Next: test_create_midi_lego_riff_combi, (up is done, correct for all keys yeah) (but down is still wrong)
+
+
 from typing import List, Union, Dict, Literal
 import pandas as pd
 from pathlib import Path
@@ -413,6 +417,19 @@ def convert_num_to_scale(
     scales_obj = _get_scale(key, scale_type)
     scales_notes = scales_obj.ascending()
 
+    # replace E# with F, B# with C, Cb with B
+    for i in range(len(scales_notes)):
+        if scales_notes[i] == "E#":
+            scales_notes[i] = "F"
+        elif scales_notes[i] == "B#":
+            scales_notes[i] = "C"
+        elif scales_notes[i] == "Cb":
+            scales_notes[i] = "B"
+        elif scales_notes[i] == "Fb":
+            scales_notes[i] = "E"
+
+
+
     # shift index by 1
     #  0 & 1 would be the same note
     # -1 -2 will refer to the note below
@@ -431,7 +448,7 @@ def convert_num_to_scale(
                              'G#': 8, 'A': 9, 'A#': 10, 'B': 11,
 
                              'Db': 1, 'Eb':3,'Gb':6, 'Ab':8, 'Bb': 10,
-                             'E#': 5, 'B#': 0,
+                             
                              }
     semitone_number_to_note_name = {v: k for k, v in note_semitone_mapping.items()}
     

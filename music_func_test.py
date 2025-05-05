@@ -12,6 +12,20 @@ LEGO_RIFF_FOLDER = Path(__file__).parent
 
 TEST_FOLDER = LEGO_RIFF_FOLDER / "test_output"
 
+def test_create_midi():
+    # debugging test_create_midi_lego_riff_combi
+    
+    OUTPUT_FOLDER = TEST_FOLDER / "test_create_midi"
+    OUTPUT_FOLDER_LIST = [None]*100
+    OUTPUT_FOLDER_LIST[0] = OUTPUT_FOLDER / "test_0"
+    OUTPUT_FOLDER_LIST[1] = OUTPUT_FOLDER / "test_1"
+
+    
+    note_names01 = ['D3', 'E3', 'D3', 'B#3', 'D3', 'E3', 'E#3', 'E3', 'D3', 'E3', 'E#3', 'G3', 'E#3', 'E3', 'E#3', 'G3', 'A3', 'G3', 'E#3', 'G3', 'A3', 'B3', 'A3', 'G3', 'A3', 'B3', 'B#4', 'B3', 'A3', 'B3', 'B#4', 'D4', 'B#4', 'B3', 'B#4', 'D4', 'E4', 'D4', 'B#4', 'D4']
+    note_lengths01 = [1,0.5,0.5,1,1]*8
+    create_midi(out_filename = OUTPUT_FOLDER_LIST[0]/"C_Major_Up.midi", note_names = note_names01,note_lengths=note_lengths01)
+    
+    
 def test_create_midi_lego_riff_combi():
     OUTPUT_FOLDER = TEST_FOLDER / "test_create_midi_lego_riff_combi"
     OUTPUT_FOLDER_LIST = [None]*100
@@ -64,7 +78,7 @@ def test_create_lego_riff_note_combi():
         ,"n": 7
         ,"root_degree": "max"
         ,"longer_last_note": 1
-        ,"key_s": ["B"]
+        ,"key_s": ["C"]
         ,"scale_types": ["Major"]
         
     }
@@ -209,6 +223,7 @@ def test_permutation_non_repeated():
     print(actual01_01)
 
 def main_test():
+    # test_create_midi()
     # test_permutation_non_repeated()
     # test_convert_num_to_scale()
     # test_create_lego_riff_note_combi()
