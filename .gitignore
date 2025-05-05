@@ -645,3 +645,5 @@ test_output/test_create_midi_lego_riff_combi/test_0/Dawn_up_Key G_reversed_240 b
 test_output/test_create_midi_lego_riff_combi/test_0/Dawn_up_Key G_reversed_300 bmp.mid
 test_output/test_create_midi_lego_riff_combi/test_0/Dawn_up_Key G_reversed_350 bmp.mid
 test_output/test_create_midi_lego_riff_combi/test_0/Dawn_up_Key G_reversed_400 bmp.mid
+
+*.mp3
